@@ -18,38 +18,36 @@
 
 typedef enum
 {
+    usTemplateOp_Sum
     /* List of Operations */
-} usOperations;
-
-typedef struct
-{
-    /* List of parameters */
-} usPayloadOpenSession;
-
-typedef struct
-{
-    /* List of parameters */
-} usPayloadCloseSession;
+} usTemplateOperations;
 
 typedef struct
 {
     uServicePackageHeader header;
 
-    struct
+    union
     {
-
-    }flags;
-}  usPayloadOperationA;
+        struct
+        {
+            int32_t a;
+            int32_t b;
+        } sum;
+    } payload;
+} usTemplateRequestPackage;
 
 typedef struct
 {
     uServicePackageHeader header;
 
-    struct
+    union
     {
-
-    }flags;
-}  usPayloadOperationB;
+        struct
+        {
+            int32_t result;
+        } sum;
+    } payload;
+} usTemplateResponsePackage;
 
 /**************************** FUNCTION PROTOTYPES *****************************/
 

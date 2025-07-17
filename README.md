@@ -41,7 +41,7 @@ Fields to set;
 | Field                            | Description |
 |----------------------------------|-------------|
 | **uSERVICE_NAME**               | Max 15-character Microservice Name to identify the Microservice. |
-| **uSERVICE_VERSION_STR**        | Microservice Version in String Format. <Major>.<Minor>.<Macro> |
+| **uSERVICE_VERSION_STR**        | Microservice Version in String Format. <Major>.<Minor> |
 | **uSERVICE_CODE_SIZE**          | Required Code Capacity for the Microservice. |
 | **uSERVICE_RAM_SIZE**           | Required RAM Capacity for the Microservice. |
 | **uSERVICE_MAINSTACK_SIZE**     | Main Stack Size of the Microservice. Only applies to the main thread; developers may create child threads at runtime with custom sizes. |
@@ -63,7 +63,7 @@ Please see an example hello world example below, name MyService.config, for Cort
 
 ```C
 uSERVICE_NAME = MyService
-uSERVICE_VERSION_STR = "1.2.34"
+uSERVICE_VERSION_STR = "0.9"
 uSERVICE_CODE_SIZE = 0x2000
 uSERVICE_RAM_SIZE = 0x1000
 uSERVICE_MAINSTACK_SIZE = 0x800
@@ -166,14 +166,13 @@ The developer can get more details about the Microservice for debug purposes.
 
 A Microservice basically is built by two parts
 
-i. Microservice Executable: A self-container independent and isolated execution. See [Microservice Implementation](#32-microservice-implementation)
+i. Microservice Executable: A self-container independent and isolated execution. See [Microservice Implementation](#33-microservice-implementation)
 
-ii. An Interface, such as a static library and Header files, that run in the caller executions to interact with the Microservice. See [Microservice API](#31-creating-microservice-api)
+ii. An Interface, such as a static library and Header files, that run in the caller executions to interact with the Microservice. See [Microservice API](#32-creating-microservice-api)
 
+### 3.1. Internal Definitions
 
-### 3.1.1. Internal Definitions
-
-> \> **RECOMMENDATION**: Create a us-\<uSERVICE_NAME\>Internal.h under Include/ directory for internal definitions, where the build system would use it for Package Generations. There is an template header under Include/ directory called "us-Template_Internal.h"; you can rename and use it.
+> \> **RECOMMENDATION**: Create a us-\<uSERVICE_NAME\>_Internal.h under Include/ directory for internal definitions, where the build system would use it for Package Generations. There is an template header under Include/ directory called "us-Template_Internal.h"; you can rename and use it.
 
 It is recommended to define internal definitions, such as request and response packages structures, to share between Microservice and the User APIs called from Caller Executions.
 
@@ -252,7 +251,7 @@ Now both Microservice and the UserLib can share the request and response for the
 
 There is a template header file under Include/ directory. usInternal_Template.h; developer is free to rename and implement this header.
 
-### 3.1 Creating Microservice API
+### 3.2 Creating Microservice API
 
 > \> **RECOMMENDATION**: Create a us-\<uSERVICE_NAME\>.h under Include/ directory as public header, where the build system would use it for Package Generations. There is an template header under Include/ directory called "us-Template.h"; you can rename and use it.
 
@@ -296,7 +295,7 @@ SysStatus uS_<uSERVICE_NAME>_OperationC(/* Argument List */, us<uSERVICE_NAME>St
 
 ```
 
-### 3.1.1. Creating a Static Library
+#### 3.2.1 Creating a Static Library
 
 > \> **RECOMMENDATION**: There is a source file called UserLib.c under Source/UserLib/ directory, where the build system would use it to generate the API Static Library. The developer can use this file to implement the Microservice API.
 
@@ -314,19 +313,29 @@ For the all API functions shall prepare a proper request package, and shall call
 
 ```C
 
-SysStatus us_\<uSERVICE_NAME\>_OperationC(/* Arg List*/, \<uSERVICE_NAME\>_Status* status)
+SysStatus us_\<uSERVICE_NAME\>_OperationC(
+        /* Arg List*/, 
+        \<uSERVICE_NAME\>_Status* status)
+{
     usOPCRequestPackage request = { /* Initialise, OP */}
     usOPCResponsePackage response;
 
     retVal = uService_RequestBlocker(
-        userLibSettings.execIndex,      /* The index we got in us_\<uSERVICE_NAME\>_Initialise() */
-        (uServicePackage*)&request,     /* Request Package */
-        (uServicePackage*)&response,    /* Response Package */
-        timeoutInMs);                   /* Timeout for the blocker operations */
+        /* The index we got in us_\<uSERVICE_NAME\>_Initialise() */
+        userLibSettings.execIndex,
+        /* Request Package */
+        (uServicePackage*)&request,
+        /* Response Package */
+        (uServicePackage*)&response,
+        /* Timeout for the blocker operations */
+        timeoutInMs);
     
     if (retVal == SysStatus_Success)
     {
-        /* Interaction successfull but Microservice may have custom status reporting */
+        /*
+         * Interaction successfull but Microservice may have
+         * custom status reporting
+         */
         *status = response.header.status;
 
         /* Set all output parameters using response.payload */
@@ -334,9 +343,10 @@ SysStatus us_\<uSERVICE_NAME\>_OperationC(/* Arg List*/, \<uSERVICE_NAME\>_Statu
 
     return retVal;
 }
+
 ``` 
 
-### 3.2 Microservice Implementation
+### 3.3 Microservice Implementation
 Microservice is a self-container, isolated executable and process the requests from other executables.
 
 A Microservice implements the following steps
@@ -370,11 +380,13 @@ void startService(void)
         }
 
         /*
-         * TODO : Check for "receivedLen" if enough or will exceed the receive buffer?
+         * TODO : Check for "receivedLen" if enough or will
+         * exceed the receive buffer?
          */
 
         /* Get the message */
-        (void)Sys_ReceiveMessage(&senderID, (uint8_t*)&request, receivedLen, &sequenceNo);
+        (void)Sys_ReceiveMessage(&senderID, (uint8_t*)&request, 
+                                 receivedLen, &sequenceNo);
 
         /* Process the request */
         processRequest(senderID, &request);
@@ -391,7 +403,9 @@ SysStatus processRequest(uint8_t senderID, usRequestPackage* request)
              * 2. Prepare Request
              * 3. Send response to the Sender using senderID
              */             
-            Sys_SendMessage(senderID, (uint8_t*)&response, sizeof(usResponsePackage), &sequenceNo);
+            Sys_SendMessage(senderID, (uint8_t*)&response,
+                            sizeof(usResponsePackage),
+                            &sequenceNo);
             break;
         default:
             break;
@@ -399,3 +413,52 @@ SysStatus processRequest(uint8_t senderID, usRequestPackage* request)
 }
 
 ```
+
+### 3.4 Microservice Simulation Environment
+A microservice shall support different environments, CPU processors but the developer shall keep in mind a Microservice shall be portable and environment(toolchain/CPU etc) agnostic.
+
+Herein, Microservice Store provides simulation environments for developers to develop their Microservices with no hardware need.
+
+#### 3.4.1 Microservice Windows Form Simulation
+
+Windows Forms allow developers to simulate the hardware environments using the Windows Form to interact with the Microservice or Microservice caller User Applications, such as simulating an LCD with a text box or a physical button with a Form Button.
+
+Windows Forms also offers likely unlimited debugging capabilities, unlimited breakpoints and accessible low level resource simulations.
+
+To run the Windows Simulation
+1. Download the "x86" package to Environment/CPU/
+2. There are two Visual Studio Project that needs to run parallel, like Microservices on Microcontrollers. Please run **Environment/Simulator/Windows/uServiceSimulator/usSimulator.sln** and **Environment/Simulator/Windows/UserAppSimulator/UserAppSimulator.sln**
+3. You will see 
+    > \> us Test Success
+
+    This is an example Microservice that has one API that sums two integer.
+
+    ```C
+    int main(void)
+    {
+        SysStatus retVal;
+
+        LOG_PRINTF(" > Container : Microservice Test User App");
+
+        SYS_INITIALISE_IPC_MESSAGEBOX(retVal, 4);
+
+        retVal = us_Template_Initialise();
+        CHECK_TEMPLATE_ERR(retVal, 0);
+
+        {
+            usTemplateStatus usStatus;
+            int32_t a = 5;
+            int32_t b = 6;
+            int32_t expectedResult = a + b;
+            int32_t result = 0;
+
+            retVal = us_Template_Sum(a, b, &result, &usStatus);
+            CHECK_TEMPLATE_ERR(retVal, usStatus);
+
+            LOG_PRINTF(" > us Test %s",
+                result == expectedResult ? "Success" : "Failed");
+        }
+    }
+    ```
+
+    The developer, then, can follow the example to implement its custom functionalities.

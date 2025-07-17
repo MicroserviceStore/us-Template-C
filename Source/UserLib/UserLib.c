@@ -8,8 +8,8 @@
 
 /********************************* INCLUDES ***********************************/
 
-#include USERVICE_PUBLIC_HEADER
-#include USERVICE_INTERNAL_HEADER
+#include "us-Template.h"
+#include "us-Template_Internal.h"
 
 #include "uService.h"
 
@@ -22,7 +22,7 @@ typedef struct
 {
     struct
     {
-        //uint32_t initialised        : 1;
+        uint32_t initialised        : 1;
     } flags;
 
     /*
@@ -50,57 +50,28 @@ SysStatus INITIALISE_FUNCTION(USERVICE_NAME_NONSTR)(void)
     return uService_Initialise(usName, &userLibSettings.execIndex);
 }
 
-#if 0
-SysStatus us_<uSERVICE_NAME>_OpenSession(/* Custom Arg List to open a session */,
-                                         /* Out uService_Status*/)
+SysStatus us_Template_Sum(int32_t a, int32_t b, int32_t* result, usTemplateStatus* usStatus)
 {
+    const uint32_t timeoutInMs = 2000;
     SysStatus retVal;
-    usRequestPackage request;
-    usResponsePackage response;
+
+    usTemplateResponsePackage response;
+    usTemplateRequestPackage request;
 
     {
-        request.header.operation = usOp_OpenSession;
-        request.header.length = <SET>;
-        request.payload = <SET>;
-    }
+        request.header.operation = usTemplateOp_Sum;
+        request.header.length = sizeof(request);
+        request.payload.sum.a = a;
+        request.payload.sum.b = b;
+    };
 
     retVal = uService_RequestBlocker(userLibSettings.execIndex, (uServicePackage*)&request, (uServicePackage*)&response, timeoutInMs);
-    
-    if (retVal == SysStatus_Success)
-    {
-        /* Interaction successfull but Microservice may have custom status reporting */
-        *status = response.header.status;
+    *usStatus = response.header.status;
 
-        /* Set all output parameters using response.payload */
+    if (*usStatus == usTemplate_Success)
+    {
+        *result = response.payload.sum.result;
     }
 
     return retVal;
 }
-
-SysStatus us_<uSERVICE_NAME>_CloseSession(/* Custom Arg List to open a session */,
-                                          /* Out uService_Status*/)
-{
-    SysStatus retVal;
-    usRequestPackage request;
-    usResponsePackage response;
-
-    {
-        request.header.operation = usOp_CloseSession;
-        request.header.length = <SET>;
-        request.payload = <SET>;
-    }
-
-    retVal = uService_RequestBlocker(userLibSettings.execIndex, (uServicePackage*)&request, (uServicePackage*)&response, timeoutInMs);
-    
-    if (retVal == SysStatus_Success)
-    {
-        /* Interaction successfull but Microservice may have custom status reporting */
-        *status = response.header.status;
-
-        /* Set all output parameters using response.payload */
-    }
-
-    return retVal;
-}
-
-#endif
