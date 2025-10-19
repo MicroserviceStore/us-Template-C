@@ -27,6 +27,7 @@ OUTPUT_USERLIB_PATH:=$(OUTPUT_PATH)/UserLib
 OUTPUT_MSSTOREPACK_FOLDER:=MicroserviceStorePackage
 OUTPUT_MSSTOREPACK_PATH:=$(OUTPUT_PATH)/$(OUTPUT_MSSTOREPACK_FOLDER)
 MICROSERVICE_ATTRIBUTES_PATH:=$(OUTPUT_PATH)/MicroserviceAttributes.json
+TESTAPP_ATTRIBUTES_PATH:=$(OUTPUT_PATH)/TestAppAttributes.json
 
 #***************************************************************************
 # Default values for optional defines
@@ -47,6 +48,7 @@ INCLUDE_DIRS := \
 	-I$(uSERVICE_PACKAGE_PATH)/Include/SysCall \
 	-I$(uSERVICE_PACKAGE_PATH)/Include/uService \
 	-IConfigurations \
+	-IInclude/AIGenerated \
 	$(uSERVICE_INCLUDE_DIRS)
 
 CFLAGS := \
@@ -152,10 +154,11 @@ TESTAPP_SOURCE_FILES := \
 testapp: output_msstorepackage all $(uSERVICE_NAME)_TestApp.elf
 $(uSERVICE_NAME)_TestApp.elf: output
 	@echo -e "\nBuilding" $(uSERVICE_NAME) " Test Application..."
-### Build The Microservice
+### Build The Test App
 	@$(CC) $(CFLAGS) $(TESTAPP_SOURCE_FILES) $(INCLUDE_DIRS) $(LD_FLAGS) -T $(uSERVICE_GCC_LD_PATH) -L"$(OUTPUT_USERLIB_PATH)" -l$(USERLIB_LINKER_NAME) -L"$(uSERVICE_PACKAGE_PATH)" -lMSRuntime_GCC  -Wl,--no-whole-archive -Xlinker -Map=$(OUTPUT_PATH)/$@.map -o $(OUTPUT_PATH)/$@
 	@echo -e "---------------------------------------------"
 	@$(SZ) $(OUTPUT_PATH)/$@
+	@$(OD) -D $(OUTPUT_PATH)/$@ > $(OUTPUT_IMAGE_DETAILS)/$(patsubst %.elf,%.objdump,$@)
 	@$(OC) -S $(OUTPUT_PATH)/$@ -O binary $(OUTPUT_IMAGE)/$(patsubst %.elf,%.bin,$@)
 
 	@RAM_SIZE=$$($(SZ) $(OUTPUT_PATH)/$@ | tail -n1 | awk '{print $$2 + $$3}'); \
@@ -165,6 +168,23 @@ $(uSERVICE_NAME)_TestApp.elf: output
 		RAM_CAP=$$(( ( ($$RAM_SIZE + 15) / 16 ) * 16 )); \
 	fi; \
 	echo -e "\n    > $(PRINT_RECOMMENDATION) " Test Application RAM Capacity is [$$RAM_CAP]. \(Microservice Store will ask for RAM Capacity.\)" $(PRINT_RESET)";
+
+### Create the Test App Attributes File
+	@rm -rf $(TESTAPP_ATTRIBUTES_PATH)
+	@echo -e "{\n\t\"Name\":\"TestApp\",\n\t\"Version\":\"$(uSERVICE_VERSION_STR)\"," > $(TESTAPP_ATTRIBUTES_PATH)
+
+	@CODE_SIZE=$$($(SZ) $(OUTPUT_PATH)/$@ | tail -n1 | awk '{print $$1 + $$2 + 256}'); \
+	RAM_SIZE=$$($(SZ) $(OUTPUT_PATH)/$@ | tail -n1 | awk '{print $$2 + $$3}'); \
+	if [ "$(CPU_MEM_RANGES_NEEDS_EXP_ROUNDING)" = "1" ]; then \
+		CODE_CAP=1; while [ $$CODE_CAP -lt $$CODE_SIZE ]; do CODE_CAP=$$(($$CODE_CAP * 2)); done; \
+		RAM_CAP=1; while [ $$RAM_CAP -lt $$RAM_SIZE ]; do RAM_CAP=$$(($$RAM_CAP * 2)); done; \
+	else \
+		CODE_CAP=$$(( ( ($$CODE_SIZE + 15) / 16 ) * 16 )); \
+		RAM_CAP=$$(( ( ($$RAM_SIZE + 15) / 16 ) * 16 )); \
+	fi; \
+	echo -e "\t\"CodeCapacity\": $$CODE_CAP," >> $(TESTAPP_ATTRIBUTES_PATH); \
+	echo -e "\t\"RAMCapacity\": $$RAM_CAP" >> $(TESTAPP_ATTRIBUTES_PATH); \
+	echo -e "}" >> $(TESTAPP_ATTRIBUTES_PATH)
 	
 	@echo -e "\n$(PRINT_OK)Build Completed...$(PRINT_RESET)"
 	@echo -e "---------------------------------------------"	

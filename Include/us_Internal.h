@@ -18,8 +18,12 @@
 
 typedef enum
 {
-    usOp_Sum
-    /* List of Operations */
+    /*
+     * List of Operations
+     *  - AI Generated ("us_operations.inc" below)
+     *  - or, Manually Add below
+     */
+    #include "us_operations.inc"
 } usOperations;
 
 typedef struct
@@ -28,11 +32,12 @@ typedef struct
 
     union
     {
-        struct
-        {
-            int32_t a;
-            int32_t b;
-        } sum;
+        /*
+        * List of Inputs of Each Operation defined in usOperations
+        *  - AI Generated ("us_operation_inputs.inc" below)
+        *  - or, Manually Add below
+        */
+        #include "us_operation_inputs.inc"
     } payload;
 } usRequestPackage;
 
@@ -42,10 +47,12 @@ typedef struct
 
     union
     {
-        struct
-        {
-            int32_t result;
-        } sum;
+        /*
+        * List of Outputs of Each Operation defined in usOperations
+        *  - AI Generated ("us_operation_outputs.inc" below)
+        *  - or, Manually Add below
+        */
+        #include "us_operation_outputs.inc"
     } payload;
 } usResponsePackage;
 

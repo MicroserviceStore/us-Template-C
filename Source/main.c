@@ -1,7 +1,12 @@
+#define LOG_ERROR_ENABLED   1
+#define LOG_WARNING_ENABLED 1
+#define LOG_INFO_ENABLED    1
 #include "uService.h"
 
-#include "us-Template.h"
+#include "us_public_headers.inc"
 #include "us_Internal.h"
+
+#include "operation_func.inc"
 
 #ifndef CFG_US_MAX_NUM_OF_SESSION
 
@@ -103,13 +108,14 @@ PRIVATE SysStatus processRequest(uint8_t senderID, usRequestPackage* request)
 
     switch (request->header.operation)
     {
-        case usOp_Sum:
-            response.payload.sum.result = request->payload.sum.a + request->payload.sum.b;
-            response.header.status = usStatus_Success;
-            response.header.length = sizeof(response.payload.sum);
+        /*
+         * Request Parser of Each Operation defined in usOperations
+         *  - AI Generated ("us_operation_parser.inc" below)
+         *  - or, Manually Add Cases for each operation below
+         */
+        #include "us_operation_parser.inc"
 
-;           retVal = Sys_SendMessage(senderID, (uint8_t*)&response, sizeof(usResponsePackage), &sequenceNo);
-            break;
+        /* Unrecognised operation */
         default:
             sendError(senderID, response.header.operation, usStatus_InvalidOperation);
             break;
