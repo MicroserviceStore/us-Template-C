@@ -10,9 +10,11 @@ TOOLCHAIN=GCC
 #***************************************************************************
 # Includes
 #***************************************************************************
-include Configurations/$(CONFIG).config
-include Environment/Toolchain/$(TOOLCHAIN)/toolchain.mk
-include Environment/CPU/$(uSERVICE_CPU_CORE)/uServicePackage/Toolchain/$(TOOLCHAIN)/flags.mk
+ifdef CONFIG
+	include Configurations/$(CONFIG).config
+	include Environment/Toolchain/$(TOOLCHAIN)/toolchain.mk
+	include Environment/CPU/$(uSERVICE_CPU_CORE)/uServicePackage/Toolchain/$(TOOLCHAIN)/flags.mk
+endif
 
 #***************************************************************************
 # Defines
@@ -77,7 +79,7 @@ CFLAGS_USERLIB := \
 #***************************************************************************
 # Rules
 #***************************************************************************
-.PHONY: all package microservice userlib output output_userlib
+.PHONY: all package microservice userlib output output_userlib unittest
 
 all: microservice userlib
 
@@ -188,3 +190,6 @@ $(uSERVICE_NAME)_TestApp.elf: output
 	
 	@echo -e "\n$(PRINT_OK)Build Completed...$(PRINT_RESET)"
 	@echo -e "---------------------------------------------"	
+
+unittest:
+	@make -f Environment/Test/UnitTests/execute_unittest.mk $(uSERVICE_NAME) $(SILENCE)

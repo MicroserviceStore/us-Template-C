@@ -106,6 +106,13 @@ ii. Header Files
 This part is detailed in the [Microservice Implementation & Interface](#3-microservice-implementation-and-interface) section.
 
 ### 2.6. Build
+
+------------------------------
+
+**Prerequisites**: Please see [Build System and Toolchain Setups](#a1-build-systems-and-toolchain-setups) section to select a preferred toolchain and setup the toolchain before build the Microservice.
+
+------------------------------
+
 There are various rules to build and get entities. And entities can be generated for different configurations by passing a \<CONFIG_NAME\> argument. 
 
 \<CONFIG_NAME\> must be a file under **Configuration/** directory with **"*.config"** extension.
@@ -466,3 +473,68 @@ See See [Configure Simulations](Environment\Simulator\Windows\README.md).
     ```
 
     The developer, then, can follow the example to implement its custom functionalities.
+
+## 4. Microservice Quality & Testing
+### 4.1. Unit Tests including Coverage and Static Analysis
+You can implement test code in Environment/Test/Unittests/unittest.c using "Unity Test Framework", and you can run the unit tests using the following command
+
+> make unittest
+
+1. Runs the all Unit Test Cases
+2. Runs the test covarage.
+3. Runs Static Analysis on the Microservice Implementation.
+
+```C
+---------------------------------------------------------------
+----------------- WHITEBOX SW TESTS ---------------------------
+
+Environment/Test/UnitTests/unittest.c:35:test_HelloWorld:PASS
+Environment/Test/UnitTests/unittest.c:40:test_sum:PASS
+
+-----------------------
+2 Tests 0 Failures 0 Ignored
+
+
+---------------------------------------------------------------
+---------------- TEST CODE COVERAGE ---------------------------
+
+    Include/AIGenerated/operation_func.inc       : 100.00% of 2
+
+---------------------------------------------------------------
+--------------- SOURCE CODE ANALYSIS --------------------------
+
+Splint 3.1.1 --- 12 April 2003
+
+Finished checking --- no warnings
+
+---------------------------------------------------------------
+
+```
+
+## A. APPENDIX
+
+### A.1. Build Systems and Toolchain Setups
+
+#### A.1.1. MSYS2 for Windows
+A Microservice package can be generated in Windows using MSYS2 Linux Emualtor.
+
+1. Please install MSYS2 first : https://repo.msys2.org/distrib/i686/
+
+   The test version is "msys2-base-i686-20210705.sfx.exe 	05-Jul-2021 20:58"
+
+2. And download the required packages from the MSYS2 console
+
+    Make to build
+    > pacman -S make
+
+    **[Optional]** x86 GCC for Unit tests.
+    > pacman -S gcc
+
+    **[Optional]** Python for Helper Scripts such as Test
+    > pacman -S python
+
+    **[Optional]** Ruby for Helper Scripts such as Unit Tests(Unity)
+    > pacman -S ruby
+
+    **[Optional]** Helper tools may need to be unzipped.
+    > pacman -S unzip
