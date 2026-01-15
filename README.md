@@ -16,7 +16,7 @@ You can see the quick steps to create a Microservice using this repository.
 Microservice Development is a lightweight process with some minor prerequisites.
 
 ### 2.1. Download Microservice Package
-Please login into your Microservice Dashboard, and select the CPU Processor you would like to work with, and download the package.
+Please login into your Developer Dashboard, find "Developer Zone" -> "Development Packages", and select the CPU Processor you would like to work with, and download the package.
 
 > Copy the package to \"**Environment/CPU/**\" directory.
 
@@ -357,10 +357,32 @@ Microservice is a self-container, isolated executable and process the requests f
 A Microservice implements the following steps
 1. [Optional] Calls uService_PrintIntro() to print the its name and version. Developer is free to print anything.
 2. Initialise a MessageBox to receive messages from other executions. MessageBox capacity also defines the maximum number of the sessions a Microservice Accept. 
-```C
-SYS_INITIALISE_IPC_MESSAGEBOX(retVal, <CFG_MAX_NUM_OF_SESSION>);
-```
+    ```C
+    SYS_INITIALISE_IPC_MESSAGEBOX(retVal, <CFG_MAX_NUM_OF_SESSION>);
+    ```
 3. Start the Microservice, see below.
+
+-----------------------
+AI Code Generation: Microservices can be implemented using AI, and this template repository allows AI tools to integrate the generate the custom code using ".INC" (include) files.
+
+You may see "<b>#ifdef US_AI_GENERATED</b>" compiler switches which are "false" by default. In your final code, please feel free to remove these compiler switches.
+
+For example;
+From
+```C
+#ifdef US_AI_GENERATED
+    #include "us_public_headers.inc"
+#else /* US_AI_GENERATED */
+    #include "us-Template.h"
+#endif /* US_AI_GENERATED */
+```
+
+To
+```C
+#include "us-MyService.h"
+```
+
+-----------------------
 
 A Microservice can sleep until receive a request to not waste the CPU time and power.
 So a Microservice can be implemented in any way, multi-threaded or a super loop.

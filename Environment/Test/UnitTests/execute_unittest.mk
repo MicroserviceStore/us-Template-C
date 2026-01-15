@@ -112,6 +112,10 @@ CFLAGS += \
 	-ftest-coverage -fprofile-arcs -g -O0 --coverage -Wno-int-to-pointer-cast \
 	$(UNITTEST_CFLAGS)
 
+ifeq ($(AIGENERATED),1)
+    CFLAGS += -DUS_AI_GENERATED=1
+endif
+
 #
 # Compiler Symbols
 #
@@ -122,6 +126,9 @@ SPLINT_SYMBOLS = \
 	-DUNIT_TEST \
 	-DSP_LINT
 
+ifeq ($(AIGENERATED),1)
+    SPLINT_SYMBOLS += -DUS_AI_GENERATED=1
+endif
 #
 # splint (static code analysis) Flags
 #

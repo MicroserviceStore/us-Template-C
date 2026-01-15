@@ -62,6 +62,10 @@ CFLAGS := \
 	-DUSERVICE_INTERNAL_HEADER=\"us-$(uSERVICE_NAME)_Internal.h\" \
 	-DUSERVICE_VERSION_STR=\"$(uSERVICE_VERSION_STR)\"
 
+ifeq ($(AIGENERATED),1)
+    CFLAGS += -DUS_AI_GENERATED=1
+endif
+
 LD_FLAGS := \
 	$(CPU_LDFLAGS) \
 	$(uSERVICE_LDFLAGS) \
@@ -192,4 +196,4 @@ $(uSERVICE_NAME)_TestApp.elf: output
 	@echo -e "---------------------------------------------"	
 
 unittest:
-	@make -f Environment/Test/UnitTests/execute_unittest.mk $(uSERVICE_NAME) $(SILENCE)
+	@make -f Environment/Test/UnitTests/execute_unittest.mk $(uSERVICE_NAME) AIGENERATED=$(AIGENERATED) $(SILENCE)

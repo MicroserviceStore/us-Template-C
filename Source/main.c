@@ -3,15 +3,25 @@
 #define LOG_INFO_ENABLED    1
 #include "uService.h"
 
-#include "us_public_headers.inc"
+#ifdef US_AI_GENERATED
+    #include "us_public_headers.inc"
+#else /* US_AI_GENERATED */
+    #include "us-Template.h"
+#endif /* US_AI_GENERATED */
+
 #include "us_Internal.h"
 
-#include "operation_func.inc"
-
 #ifndef CFG_US_MAX_NUM_OF_SESSION
-
 #define CFG_US_MAX_NUM_OF_SESSION   1       /* Let us allow one session at a time */
 #endif
+
+#ifdef US_AI_GENERATED
+    #include "operation_func.inc"
+#else /* US_AI_GENERATED */
+/* Test Sum function for the template */
+int sum(int a, int b) { return a + b; }
+
+#endif /* US_AI_GENERATED */
 
 PRIVATE void startService(void);
 PRIVATE SysStatus processRequest(uint8_t senderID, usRequestPackage* request);
@@ -32,7 +42,6 @@ int main()
     {
         startService();
     }
-
 
     LOG_ERROR("Exiting the Microservice...");
     Sys_Exit();
@@ -113,7 +122,16 @@ PRIVATE SysStatus processRequest(uint8_t senderID, usRequestPackage* request)
          *  - AI Generated ("us_operation_parser.inc" below)
          *  - or, Manually Add Cases for each operation below
          */
+#ifdef US_AI_GENERATED
         #include "us_operation_parser.inc"
+#else /* US_AI_GENERATED */
+        case usOp_Sum:
+            response.payload.sum.result = sum(request->payload.sum.a, request->payload.sum.b);
+            response.header.status = usStatus_Success;
+            response.header.length = sizeof(response.payload.sum);
+            retVal = Sys_SendMessage(senderID, (uint8_t*)&response, sizeof(usResponsePackage), &sequenceNo);
+            break;
+#endif /* US_AI_GENERATED */
 
         /* Unrecognised operation */
         default:

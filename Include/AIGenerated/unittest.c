@@ -3,7 +3,11 @@
 #define DEBUG_LEVEL                 0
 #endif
 
-#include "operation_func.inc"
+#ifdef US_AI_GENERATED
+    #include "operation_func.inc"
+#else /* US_AI_GENERATED */
+    #error "Not Supported"
+#endif /* US_AI_GENERATED */
 
 /* Do not include the below for Splint */
 #ifndef SP_LINT

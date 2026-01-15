@@ -2,12 +2,16 @@ import sys
 import re
 
 filename = sys.argv[1]
+aiGenerated = len(sys.argv) > 2 and sys.argv[2].lower() == "aigenerated"
 
 print('')
 
 files_to_check = {
 	'Environment/Test/UnitTests/us_operation_source.c',
 	'Include/AIGenerated/operation_func.inc'
+} if aiGenerated else {
+    'Environment/Test/UnitTests/us_operation_source.c',
+    'Include/Standard/operation_func.inc'
 }
 
 non_blocker_files = {
