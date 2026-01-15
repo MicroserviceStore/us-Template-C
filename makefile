@@ -30,6 +30,8 @@ OUTPUT_MSSTOREPACK_FOLDER:=MicroserviceStorePackage
 OUTPUT_MSSTOREPACK_PATH:=$(OUTPUT_PATH)/$(OUTPUT_MSSTOREPACK_FOLDER)
 MICROSERVICE_ATTRIBUTES_PATH:=$(OUTPUT_PATH)/MicroserviceAttributes.json
 TESTAPP_ATTRIBUTES_PATH:=$(OUTPUT_PATH)/TestAppAttributes.json
+EXTERNAL_LIBS_DIR = Libs
+EXTERNAL_LIBS_MANIFEST = $(EXTERNAL_LIBS_DIR)/libraries.txt
 
 #***************************************************************************
 # Default values for optional defines
@@ -83,7 +85,7 @@ CFLAGS_USERLIB := \
 #***************************************************************************
 # Rules
 #***************************************************************************
-.PHONY: all package microservice userlib output output_userlib unittest
+.PHONY: all package microservice userlib output output_userlib unittest init_repo
 
 all: microservice userlib
 
@@ -197,3 +199,26 @@ $(uSERVICE_NAME)_TestApp.elf: output
 
 unittest:
 	@make -f Environment/Test/UnitTests/execute_unittest.mk $(uSERVICE_NAME) AIGENERATED=$(AIGENERATED) $(SILENCE)
+
+init_repo:
+	@mkdir -p $(EXTERNAL_LIBS_DIR)
+	@echo "Downloading required libraries..."
+	@while IFS=',' read -r url sha || [ -n "$$url" ]; do \
+		url=$$(echo $$url | tr -d '\r'); \
+		sha=$$(echo $$sha | tr -d '\r'); \
+		[[ "$$url" =~ ^#.* ]] || [[ -z "$$url" ]] && continue; \
+		repo_name=$$(basename $$url .git); \
+		echo ""; \
+		echo "------------------------------------"; \
+		echo "Checking $$repo_name (SHA: $$sha)..."; \
+		if [ ! -d "$(EXTERNAL_LIBS_DIR)/$$repo_name" ]; then \
+			echo ""; \
+			git clone --depth 1 $$url $(EXTERNAL_LIBS_DIR)/$$repo_name; \
+		fi; \
+		(cd $(EXTERNAL_LIBS_DIR)/$$repo_name && git fetch origin && git checkout -q $$sha); \
+	done < $(EXTERNAL_LIBS_MANIFEST); \
+	echo ""; \
+	echo "------------------------------------"; \
+	echo ""; \
+	echo "Done"; \
+	echo ""; \

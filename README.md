@@ -441,6 +441,23 @@ SysStatus processRequest(uint8_t senderID, usRequestPackage* request)
 
 ```
 
+#### 3.3.1 Using External Libraries
+The developer is free to include source or include files from any external library, likely Github. 
+The developer is also free to collect the external libraries in the project structure but the template repository provides a "makefile rule" to download the repositories under Libs folder.
+
+1. Add the external repository URLs and SHAs in Libs/libraries.txt, line by line.
+Please see an example below;
+
+    ```
+    https://github.com/kokke/tiny-AES-c,2385675
+    https://github.com/kokke/tiny-HMAC-c,b371993
+    ```
+
+Then, run 
+> make init_repo
+
+This repo clones the repositories under the Libs.
+
 ### 3.4 Microservice Simulation Environment
 A microservice shall support different environments, CPU processors but the developer shall keep in mind a Microservice shall be portable and environment(toolchain/CPU etc) agnostic.
 
