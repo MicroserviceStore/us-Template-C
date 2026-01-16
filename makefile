@@ -27,7 +27,9 @@ USERLIB_LINKER_NAME:=uS-$(uSERVICE_NAME)UserLib_$(TOOLCHAIN)
 USERLIB_NAME:=lib$(USERLIB_LINKER_NAME).a
 OUTPUT_USERLIB_PATH:=$(OUTPUT_PATH)/UserLib
 OUTPUT_MSSTOREPACK_FOLDER:=MicroserviceStorePackage
+OUTPUT_TESTAPPPACK_FOLDER:=TestAppPackage
 OUTPUT_MSSTOREPACK_PATH:=$(OUTPUT_PATH)/$(OUTPUT_MSSTOREPACK_FOLDER)
+OUTPUT_TESTAPPPACK_PATH:=$(OUTPUT_PATH)/$(OUTPUT_TESTAPPPACK_FOLDER)
 MICROSERVICE_ATTRIBUTES_PATH:=$(OUTPUT_PATH)/MicroserviceAttributes.json
 TESTAPP_ATTRIBUTES_PATH:=$(OUTPUT_PATH)/TestAppAttributes.json
 EXTERNAL_LIBS_DIR = Libs
@@ -144,16 +146,23 @@ output_userlib:
 output_msstorepackage:
 	@mkdir -p $(OUTPUT_PATH)
 	@mkdir -p $(OUTPUT_MSSTOREPACK_PATH)
+	@mkdir -p $(OUTPUT_TESTAPPPACK_PATH)
 
 clean:
 	@rm -rf $(OUTPUT_PATH)
 
-package: output_msstorepackage all check_zip
+package: output_msstorepackage all $(uSERVICE_NAME)_TestApp.elf check_zip
 	@cp $(OUTPUT_IMAGE)/$(uSERVICE_NAME).bin $(OUTPUT_MSSTOREPACK_PATH)/
+	@cp $(OUTPUT_IMAGE)/$(uSERVICE_NAME)_TestApp.bin $(OUTPUT_MSSTOREPACK_PATH)/
 	@cp -r $(OUTPUT_USERLIB_PATH)/ $(OUTPUT_MSSTOREPACK_PATH)/
 	@cp $(MICROSERVICE_ATTRIBUTES_PATH) $(OUTPUT_MSSTOREPACK_PATH)/
+	@cp $(TESTAPP_ATTRIBUTES_PATH) $(OUTPUT_MSSTOREPACK_PATH)/
 	@cd $(OUTPUT_PATH) && zip -rq MSStore_$(uSERVICE_NAME)_$(uSERVICE_VERSION_STR).zip $(OUTPUT_MSSTOREPACK_FOLDER)
 	@echo -e "\n$(PRINT_OK)Microservice Store Package Generation Completed...$(PRINT_RESET)"
+	@cp $(OUTPUT_IMAGE)/$(uSERVICE_NAME)_TestApp.bin $(OUTPUT_TESTAPPPACK_PATH)/
+	@cp $(TESTAPP_ATTRIBUTES_PATH) $(OUTPUT_TESTAPPPACK_PATH)/
+	@cd $(OUTPUT_PATH) && zip -rq TestApp_$(uSERVICE_NAME)_$(uSERVICE_VERSION_STR).zip $(OUTPUT_TESTAPPPACK_FOLDER)
+	@echo -e "\n$(PRINT_OK)Test App Package Generation Completed...$(PRINT_RESET)"
 
 TESTAPP_SOURCE_FILES := \
 	$(uSERVICE_PACKAGE_PATH)/Toolchain/$(TOOLCHAIN)/vectors.s \
@@ -174,8 +183,7 @@ $(uSERVICE_NAME)_TestApp.elf: output
 		RAM_CAP=1; while [ $$RAM_CAP -lt $$RAM_SIZE ]; do RAM_CAP=$$(($$RAM_CAP * 2)); done; \
 	else \
 		RAM_CAP=$$(( ( ($$RAM_SIZE + 15) / 16 ) * 16 )); \
-	fi; \
-	echo -e "\n    > $(PRINT_RECOMMENDATION) " Test Application RAM Capacity is [$$RAM_CAP]. \(Microservice Store will ask for RAM Capacity.\)" $(PRINT_RESET)";
+	fi;
 
 ### Create the Test App Attributes File
 	@rm -rf $(TESTAPP_ATTRIBUTES_PATH)
