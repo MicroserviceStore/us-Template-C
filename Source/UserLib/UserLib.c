@@ -40,7 +40,7 @@ typedef struct
 /******************************** VARIABLES ***********************************/
 PRIVATE uS_UserLibSettings userLibSettings;
 
-PRIVATE const char usName[SYS_EXEC_NAME_MAX_LENGTH] = USERVICE_NAME;
+PRIVATE const char usUID[SYS_EXEC_NAME_MAX_LENGTH] = USERVICE_UID;
 
 /***************************** PRIVATE FUNCTIONS *******************************/
 
@@ -50,7 +50,7 @@ PRIVATE const char usName[SYS_EXEC_NAME_MAX_LENGTH] = USERVICE_NAME;
 SysStatus INITIALISE_FUNCTION(USERVICE_NAME_NONSTR)(void)
 {
     /* Get the Microservice Index to interact with the Microservice */
-    return uService_Initialise(usName, &userLibSettings.execIndex);
+    return uService_Initialise(usUID, &userLibSettings.execIndex);
 }
 
 /*
