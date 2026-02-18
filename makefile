@@ -23,7 +23,7 @@ uSERVICE_PACKAGE_PATH := Environment/CPU/$(uSERVICE_CPU_CORE)/uServicePackage
 OUTPUT_PATH:=Output/$(uSERVICE_CPU_CORE)/$(TOOLCHAIN)
 OUTPUT_IMAGE:=$(OUTPUT_PATH)/Image
 OUTPUT_IMAGE_DETAILS:=$(OUTPUT_PATH)/ImageDetails
-USERLIB_LINKER_NAME:=uS-$(uSERVICE_NAME)UserLib_$(TOOLCHAIN)
+USERLIB_LINKER_NAME:=uS-$(uSERVICE_UID)UserLib_$(TOOLCHAIN)
 USERLIB_NAME:=lib$(USERLIB_LINKER_NAME).a
 OUTPUT_USERLIB_PATH:=$(OUTPUT_PATH)/UserLib
 OUTPUT_MSSTOREPACK_FOLDER:=MicroserviceStorePackage
@@ -62,6 +62,7 @@ CFLAGS := \
 	$(uSERVICE_CFLAGS) \
 	-DUSERVICE_NAME=\"$(uSERVICE_NAME)\" \
 	-DUSERVICE_NAME_NONSTR=$(uSERVICE_NAME) \
+	-DUSERVICE_UID=\"$(uSERVICE_UID)\" \
 	-DUSERVICE_PUBLIC_HEADER=\"us-$(uSERVICE_NAME).h\" \
 	-DUSERVICE_INTERNAL_HEADER=\"us-$(uSERVICE_NAME)_Internal.h\" \
 	-DUSERVICE_VERSION_STR=\"$(uSERVICE_VERSION_STR)\"
@@ -91,8 +92,8 @@ CFLAGS_USERLIB := \
 
 all: microservice userlib
 
-microservice: $(uSERVICE_NAME).elf
-$(uSERVICE_NAME).elf: output
+microservice: $(uSERVICE_UID).elf
+$(uSERVICE_UID).elf: output
 	@echo -e "\nBuilding" $(uSERVICE_NAME) "Microservice..."
 	@echo -e "---------------------------------------------"
 	
@@ -111,7 +112,7 @@ $(uSERVICE_NAME).elf: output
 
 ### Create the Microservice Attributes File
 	@rm -rf $(MICROSERVICE_ATTRIBUTES_PATH)
-	@echo -e "{\n\t\"Name\":\"$(uSERVICE_NAME)\",\n\t\"Version\":\"$(uSERVICE_VERSION_STR)\"," > $(MICROSERVICE_ATTRIBUTES_PATH)
+	@echo -e "{\n\t\"Name\":\"$(uSERVICE_NAME)\",\n\t\"UID\":\"$(uSERVICE_UID)\",\n\t\"Version\":\"$(uSERVICE_VERSION_STR)\"," > $(MICROSERVICE_ATTRIBUTES_PATH)
 
 	@CODE_SIZE=$$($(SZ) $(OUTPUT_PATH)/$@ | tail -n1 | awk '{print $$1 + $$2 + 256}'); \
 	RAM_SIZE=$$($(SZ) $(OUTPUT_PATH)/$@ | tail -n1 | awk '{print $$2 + $$3}'); \
@@ -151,25 +152,25 @@ output_msstorepackage:
 clean:
 	@rm -rf $(OUTPUT_PATH)
 
-package: output_msstorepackage all $(uSERVICE_NAME)_TestApp.elf check_zip
-	@cp $(OUTPUT_IMAGE)/$(uSERVICE_NAME).bin $(OUTPUT_MSSTOREPACK_PATH)/
-	@cp $(OUTPUT_IMAGE)/$(uSERVICE_NAME)_TestApp.bin $(OUTPUT_MSSTOREPACK_PATH)/
+package: output_msstorepackage all $(uSERVICE_UID)_TestApp.elf check_zip
+	@cp $(OUTPUT_IMAGE)/$(uSERVICE_UID).bin $(OUTPUT_MSSTOREPACK_PATH)/
+	@cp $(OUTPUT_IMAGE)/$(uSERVICE_UID)_TestApp.bin $(OUTPUT_MSSTOREPACK_PATH)/
 	@cp -r $(OUTPUT_USERLIB_PATH)/ $(OUTPUT_MSSTOREPACK_PATH)/
 	@cp $(MICROSERVICE_ATTRIBUTES_PATH) $(OUTPUT_MSSTOREPACK_PATH)/
 	@cp $(TESTAPP_ATTRIBUTES_PATH) $(OUTPUT_MSSTOREPACK_PATH)/
-	@cd $(OUTPUT_PATH) && zip -rq MSStore_$(uSERVICE_NAME)_$(uSERVICE_VERSION_STR).zip $(OUTPUT_MSSTOREPACK_FOLDER)
+	@cd $(OUTPUT_PATH) && zip -rq MSStore_$(uSERVICE_UID)_$(uSERVICE_VERSION_STR).zip $(OUTPUT_MSSTOREPACK_FOLDER)
 	@echo -e "\n$(PRINT_OK)Microservice Store Package Generation Completed...$(PRINT_RESET)"
-	@cp $(OUTPUT_IMAGE)/$(uSERVICE_NAME)_TestApp.bin $(OUTPUT_TESTAPPPACK_PATH)/
+	@cp $(OUTPUT_IMAGE)/$(uSERVICE_UID)_TestApp.bin $(OUTPUT_TESTAPPPACK_PATH)/
 	@cp $(TESTAPP_ATTRIBUTES_PATH) $(OUTPUT_TESTAPPPACK_PATH)/
-	@cd $(OUTPUT_PATH) && zip -rq TestApp_$(uSERVICE_NAME)_$(uSERVICE_VERSION_STR).zip $(OUTPUT_TESTAPPPACK_FOLDER)
+	@cd $(OUTPUT_PATH) && zip -rq TestApp_$(uSERVICE_UID)_$(uSERVICE_VERSION_STR).zip $(OUTPUT_TESTAPPPACK_FOLDER)
 	@echo -e "\n$(PRINT_OK)Test App Package Generation Completed...$(PRINT_RESET)"
 
 TESTAPP_SOURCE_FILES := \
 	$(uSERVICE_PACKAGE_PATH)/Toolchain/$(TOOLCHAIN)/vectors.s \
 	Environment/Simulator/Windows/UserAppSimulator/UserAppSimulator/main.c
 
-testapp: output_msstorepackage all $(uSERVICE_NAME)_TestApp.elf
-$(uSERVICE_NAME)_TestApp.elf: output
+testapp: output_msstorepackage all $(uSERVICE_UID)_TestApp.elf
+$(uSERVICE_UID)_TestApp.elf: output
 	@echo -e "\nBuilding" $(uSERVICE_NAME) " Test Application..."
 ### Build The Test App
 	@$(CC) $(CFLAGS) $(TESTAPP_SOURCE_FILES) $(INCLUDE_DIRS) $(LD_FLAGS) -T $(uSERVICE_GCC_LD_PATH) -L"$(OUTPUT_USERLIB_PATH)" -l$(USERLIB_LINKER_NAME) -L"$(uSERVICE_PACKAGE_PATH)" -lMSRuntime_GCC  -Wl,--no-whole-archive -Xlinker -Map=$(OUTPUT_PATH)/$@.map -o $(OUTPUT_PATH)/$@
@@ -221,7 +222,7 @@ init_repo:
 		echo "Checking $$repo_name (SHA: $$sha)..."; \
 		if [ ! -d "$(EXTERNAL_LIBS_DIR)/$$repo_name" ]; then \
 			echo ""; \
-			git clone --depth 1 $$url $(EXTERNAL_LIBS_DIR)/$$repo_name; \
+			git clone $$url $(EXTERNAL_LIBS_DIR)/$$repo_name; \
 		fi; \
 		(cd $(EXTERNAL_LIBS_DIR)/$$repo_name && git fetch origin && git checkout -q $$sha); \
 	done < $(EXTERNAL_LIBS_MANIFEST); \

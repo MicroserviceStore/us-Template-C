@@ -29,7 +29,9 @@ typedef enum
     /* Microservice does not have any available session */
     usStatus_NoSessionSlotAvailable,
     /* Request to an invalid session */
-    usStatus_InvalidSession,
+    usStatus_InvalidSession,    
+    /* Invalid Parameter */
+    usStatus_InvalidParam,
     /* Invalid Parameter - Insufficient Input or Output Size  */
     usStatus_InvalidParam_UnsufficientSize,
     /* Invalid Parameter - Input or Output exceeds the allowed capacity  */

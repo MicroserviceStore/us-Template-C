@@ -53,7 +53,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;SIM_EXEC_INDEX=1;SIM_CPUCORE_NAME="CortexM4";USERVICE_NAME_NONSTR=Template;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;SIM_EXEC_INDEX=1;SIM_CPUCORE_NAME="CortexM4";USERVICE_NAME_NONSTR=Template;USERVICE_UID="TEMPLATE";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\UserAppSimulator\;..\..\..\..\..\Configurations;..\..\..\..\..\Include;..\..\..\..\..\Include\AIGenerated;..\..\..\..\CPU\x86\uServicePackage\Include;..\..\..\..\CPU\x86\uServicePackage\Include\SysCall;..\..\..\..\CPU\x86\uServicePackage\Include\uService;..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

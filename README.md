@@ -40,7 +40,8 @@ Fields to set;
 
 | Field                            | Description |
 |----------------------------------|-------------|
-| **uSERVICE_NAME**               | Max 15-character Microservice Name to identify the Microservice. |
+| **uSERVICE_NAME**               | Max 15 ASCII character Microservice Name. |
+| **uSERVICE_UID**                | Max 15-character Microservice Unique ID to universially identify the Microservice. Must match the same ID in Microservice Store |
 | **uSERVICE_VERSION_STR**        | Microservice Version in String Format. <Major>.<Minor> |
 | **uSERVICE_MAINSTACK_SIZE**     | Main Stack Size of the Microservice. Only applies to the main thread; developers may create child threads at runtime with custom sizes. |
 | **uSERVICE_CPU_CORE**           | Target CPU Core for the Microservice build. Must match the CPU Core selected during Microservice Package Download (see `Environment/CPU/<CPUCORE>`). |
@@ -61,6 +62,7 @@ Please see an example hello world example below, name MyService.config, for Cort
 
 ```C
 uSERVICE_NAME = MyService
+uSERVICE_UID = MYSERVICE
 uSERVICE_VERSION_STR = "0.9"
 uSERVICE_MAINSTACK_SIZE = 0x800
 
@@ -126,7 +128,7 @@ There are various rules to build and get entities. And entities can be generated
     > make microservice CONFIG=\<CONFIG_NAME\>
 
     
-    Microservice Executable is generated under Output/\<uSERVICE_CPU_CORE\>/\<TOOLCHAIN\>\Image directory. There will be two version; \<uSERVICE_NAME\>.bin (binary format) and \<uSERVICE_NAME\>.hex (intel-hex format).
+    Microservice Executable is generated under Output/\<uSERVICE_CPU_CORE\>/\<TOOLCHAIN\>\Image directory. There will be two version; \<uSERVICE_UID\>.bin (binary format) and \<uSERVICE_UID\>.hex (intel-hex format).
 
 2. **"userlib"**: Build the User Lib of Microservice and generates the static libraries and header files for caller executables to interact with Microservice.
 The developer can build the Microservice for various configurations.
@@ -152,18 +154,18 @@ Outputs files are collected under **Output/\<uSERVICE_CPUCORE\>/\<TOOLCHAIN\>/**
 
 The developer can use Image Outputs to submit the Microservices to the Microservice Store under **Output/\<uSERVICE_CPUCORE\>/\<TOOLCHAIN\>/Image**
 
-> * **\<uSERVICE_NAME\>.bin** : Microservice Binary Output
-> * **\<uSERVICE_NAME\>.hex** : Microservice IntelHex Output
+> * **\<uSERVICE_UID\>.bin** : Microservice Binary Output
+> * **\<uSERVICE_UID\>.hex** : Microservice IntelHex Output
 
 #### 2.7.1 Helper Outputs
 The developer can get more details about the Microservice for debug purposes.
 
-> * **\<uSERVICE_NAME\>.elf** : ELF Output
-> * **\<uSERVICE_NAME\>.elf.map** : MAP Output
+> * **\<uSERVICE_UID\>.elf** : ELF Output
+> * **\<uSERVICE_UID\>.elf.map** : MAP Output
 
-> * **ImageDetails/\<uSERVICE_NAME\>.objdump** : Object dump
-> * **ImageDetails/\<uSERVICE_NAME\>.size** : Symbols and Symbol Sizes
-> * **ImageDetails/\<uSERVICE_NAME\>.sym** : Symbols
+> * **ImageDetails/\<uSERVICE_UID\>.objdump** : Object dump
+> * **ImageDetails/\<uSERVICE_UID\>.size** : Symbols and Symbol Sizes
+> * **ImageDetails/\<uSERVICE_UID\>.sym** : Symbols
 
 ## 3. Microservice Implementation and Interface
 
@@ -420,7 +422,7 @@ void startService(void)
     }
 }
 
-SysStatus processRequest(uint8_t senderID, usRequestPackage* request)
+void processRequest(uint8_t senderID, usRequestPackage* request)
 {
     switch (request->header.operation)
     {

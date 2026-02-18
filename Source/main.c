@@ -24,7 +24,7 @@ int sum(int a, int b) { return a + b; }
 #endif /* US_AI_GENERATED */
 
 PRIVATE void startService(void);
-PRIVATE SysStatus processRequest(uint8_t senderID, usRequestPackage* request);
+PRIVATE void processRequest(uint8_t senderID, usRequestPackage* request);
 PRIVATE void sendError(uint8_t receiverID, uint16_t operation, uint8_t status);
 
 int main()
@@ -107,7 +107,7 @@ PRIVATE void startService(void)
     }
 }
 
-PRIVATE SysStatus processRequest(uint8_t senderID, usRequestPackage* request)
+PRIVATE void processRequest(uint8_t senderID, usRequestPackage* request)
 {
     SysStatus retVal = SysStatus_Success;
     usResponsePackage response;
