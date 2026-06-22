@@ -35,6 +35,7 @@ TESTAPP_ATTRIBUTES_PATH:=$(OUTPUT_PATH)/TestAppAttributes.json
 EXTERNAL_LIBS_DIR = Libs
 EXTERNAL_LIBS_MANIFEST = $(EXTERNAL_LIBS_DIR)/libraries.txt
 
+
 #***************************************************************************
 # Default values for optional defines
 #***************************************************************************
@@ -120,8 +121,8 @@ $(uSERVICE_UID).elf: output
 		CODE_CAP=1; while [ $$CODE_CAP -lt $$CODE_SIZE ]; do CODE_CAP=$$(($$CODE_CAP * 2)); done; \
 		RAM_CAP=1; while [ $$RAM_CAP -lt $$RAM_SIZE ]; do RAM_CAP=$$(($$RAM_CAP * 2)); done; \
 	else \
-		CODE_CAP=$$(( ( ($$CODE_SIZE + 15) / 16 ) * 16 )); \
-		RAM_CAP=$$(( ( ($$RAM_SIZE + 15) / 16 ) * 16 )); \
+		CODE_CAP=$$(( ( ($$CODE_SIZE + 31) / 32 ) * 32 )); \
+		RAM_CAP=$$(( ( ($$RAM_SIZE + 31) / 32 ) * 32 )); \
 	fi; \
 	echo -e "\t\"CodeCapacity\": $$CODE_CAP," >> $(MICROSERVICE_ATTRIBUTES_PATH); \
 	echo -e "\t\"RAMCapacity\": $$RAM_CAP" >> $(MICROSERVICE_ATTRIBUTES_PATH); \
@@ -183,7 +184,7 @@ $(uSERVICE_UID)_TestApp.elf: output
 	if [ "$(CPU_MEM_RANGES_NEEDS_EXP_ROUNDING)" = "1" ]; then \
 		RAM_CAP=1; while [ $$RAM_CAP -lt $$RAM_SIZE ]; do RAM_CAP=$$(($$RAM_CAP * 2)); done; \
 	else \
-		RAM_CAP=$$(( ( ($$RAM_SIZE + 15) / 16 ) * 16 )); \
+		RAM_CAP=$$(( ( ($$RAM_SIZE + 31) / 32 ) * 32 )); \
 	fi;
 
 ### Create the Test App Attributes File
@@ -196,8 +197,8 @@ $(uSERVICE_UID)_TestApp.elf: output
 		CODE_CAP=1; while [ $$CODE_CAP -lt $$CODE_SIZE ]; do CODE_CAP=$$(($$CODE_CAP * 2)); done; \
 		RAM_CAP=1; while [ $$RAM_CAP -lt $$RAM_SIZE ]; do RAM_CAP=$$(($$RAM_CAP * 2)); done; \
 	else \
-		CODE_CAP=$$(( ( ($$CODE_SIZE + 15) / 16 ) * 16 )); \
-		RAM_CAP=$$(( ( ($$RAM_SIZE + 15) / 16 ) * 16 )); \
+		CODE_CAP=$$(( ( ($$CODE_SIZE + 31) / 32 ) * 32 )); \
+		RAM_CAP=$$(( ( ($$RAM_SIZE + 31) / 32 ) * 32 )); \
 	fi; \
 	echo -e "\t\"CodeCapacity\": $$CODE_CAP," >> $(TESTAPP_ATTRIBUTES_PATH); \
 	echo -e "\t\"RAMCapacity\": $$RAM_CAP" >> $(TESTAPP_ATTRIBUTES_PATH); \
