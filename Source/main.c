@@ -66,7 +66,7 @@ PRIVATE void startService(void)
         if (!dataReceived || receivedLen == 0)
         {
             /* Sleep until receive an IPC message */
-            Sys_WaitForEvent(SysEvent_IPCMessage);
+            Sys_WaitForEvent(SysEvent_IPCMessage, 0);
 
             continue;
         }
@@ -138,8 +138,6 @@ PRIVATE void processRequest(uint8_t senderID, usRequestPackage* request)
             sendError(senderID, response.header.operation, usStatus_InvalidOperation);
             break;
     }
-
-    return retVal;
 }
 
 PRIVATE void sendError(uint8_t receiverID, uint16_t operation, uint8_t status)

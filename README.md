@@ -400,7 +400,7 @@ void startService(void)
         int receivedLen = 0;
         
         /* Sleep until receive an IPC message */
-        Sys_WaitForEvent(SysEvent_IPCMessage);
+        Sys_WaitForEvent(SysEvent_IPCMessage, 0);
 
         (void)Sys_IsMessageReceived(&dataReceived, &receivedLen, &sequenceNo);       
         if (!dataReceived || receivedLen == 0)
