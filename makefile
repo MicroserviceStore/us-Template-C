@@ -10,6 +10,7 @@ TOOLCHAIN=GCC
 #***************************************************************************
 # Includes
 #***************************************************************************
+
 ifdef CONFIG
 	include Configurations/$(CONFIG).config
 	include Environment/Toolchain/$(TOOLCHAIN)/toolchain.mk
@@ -27,14 +28,27 @@ USERLIB_LINKER_NAME:=uS-$(uSERVICE_UID)UserLib_$(TOOLCHAIN)
 USERLIB_NAME:=lib$(USERLIB_LINKER_NAME).a
 OUTPUT_USERLIB_PATH:=$(OUTPUT_PATH)/UserLib
 OUTPUT_MSSTOREPACK_FOLDER:=MicroserviceStorePackage
-OUTPUT_TESTAPPPACK_FOLDER:=TestAppPackage
+OUTPUT_TESTAPPPACK_FOLDER:=VendorImagePackage
 OUTPUT_MSSTOREPACK_PATH:=$(OUTPUT_PATH)/$(OUTPUT_MSSTOREPACK_FOLDER)
 OUTPUT_TESTAPPPACK_PATH:=$(OUTPUT_PATH)/$(OUTPUT_TESTAPPPACK_FOLDER)
 MICROSERVICE_ATTRIBUTES_PATH:=$(OUTPUT_PATH)/MicroserviceAttributes.json
-TESTAPP_ATTRIBUTES_PATH:=$(OUTPUT_PATH)/TestAppAttributes.json
+TESTAPP_ATTRIBUTES_PATH:=$(OUTPUT_PATH)/ImageAttributes.json
 EXTERNAL_LIBS_DIR = Libs
 EXTERNAL_LIBS_MANIFEST = $(EXTERNAL_LIBS_DIR)/libraries.txt
 
+SIM_TIMEOUT     ?= 1
+
+# Only what's *additional* to the normal CFLAGS/LD_FLAGS for this build kind
+SIM_SOURCE_FILES := Environment/CPU/x86/uServicePackage/Simulation/Linux/SysCallSimulator.c
+SIM_INCLUDE_DIRS := -IEnvironment/Simulator
+
+SIM_CFLAGS := -O0 -g -pthread $(SIM_INCLUDE_DIRS) 
+SIM_LD_FLAGS := -lpthread
+SIM_LOG_PATH := $(OUTPUT_PATH)/logs
+
+TESTAPP_SIM_SOURCE_FILES := \
+	Environment/Simulator/Windows/UserAppSimulator/UserAppSimulator/main.c \
+	$(SIM_SOURCE_FILES)
 
 #***************************************************************************
 # Default values for optional defines
@@ -46,8 +60,10 @@ uSERVICE_GCC_LD_PATH ?= $(uSERVICE_PACKAGE_PATH)/Toolchain/$(TOOLCHAIN)/microser
 #***************************************************************************
 # Build Objects
 #***************************************************************************
+ASM_FILES := \
+	$(uSERVICE_PACKAGE_PATH)/Toolchain/$(TOOLCHAIN)/vectors.s
+
 SOURCE_FILES := \
-	$(uSERVICE_PACKAGE_PATH)/Toolchain/$(TOOLCHAIN)/vectors.s \
 	$(uSERVICE_SOURCE_FILES)
 
 INCLUDE_DIRS := \
@@ -56,6 +72,7 @@ INCLUDE_DIRS := \
 	-I$(uSERVICE_PACKAGE_PATH)/Include/uService \
 	-IConfigurations \
 	-IInclude/AIGenerated \
+	-ILibs \
 	$(uSERVICE_INCLUDE_DIRS)
 
 CFLAGS := \
@@ -89,7 +106,7 @@ CFLAGS_USERLIB := \
 #***************************************************************************
 # Rules
 #***************************************************************************
-.PHONY: all package microservice userlib output output_userlib unittest init_repo
+.PHONY: all package microservice userlib output output_userlib unittest init_repo simulator simulator_ms simulator_testapp simulator_run
 
 all: microservice userlib
 
@@ -99,7 +116,7 @@ $(uSERVICE_UID).elf: output
 	@echo -e "---------------------------------------------"
 	
 ### Build The Microservice
-	@$(CC) $(CFLAGS) $(SOURCE_FILES) $(INCLUDE_DIRS) $(LD_FLAGS) -T $(uSERVICE_GCC_LD_PATH) -L"$(uSERVICE_PACKAGE_PATH)" -lMSRuntime_GCC -Xlinker -Map=$(OUTPUT_PATH)/$@.map -o $(OUTPUT_PATH)/$@
+	@$(CC) $(CFLAGS) $(SOURCE_FILES) $(ASM_FILES) $(INCLUDE_DIRS) $(LD_FLAGS) -T $(uSERVICE_GCC_LD_PATH) -L"$(uSERVICE_PACKAGE_PATH)" -lMSRuntime_GCC -Xlinker -Map=$(OUTPUT_PATH)/$@.map -o $(OUTPUT_PATH)/$@
 	@$(SZ) $(OUTPUT_PATH)/$@
 	@echo -e "\n$(PRINT_OK)Build Completed...$(PRINT_RESET)"
 
@@ -153,28 +170,29 @@ output_msstorepackage:
 clean:
 	@rm -rf $(OUTPUT_PATH)
 
-package: output_msstorepackage all $(uSERVICE_UID)_TestApp.elf check_zip
+package: output_msstorepackage all $(uSERVICE_UID)_VendorImage.elf check_zip
 	@cp $(OUTPUT_IMAGE)/$(uSERVICE_UID).bin $(OUTPUT_MSSTOREPACK_PATH)/
-	@cp $(OUTPUT_IMAGE)/$(uSERVICE_UID)_TestApp.bin $(OUTPUT_MSSTOREPACK_PATH)/
+	@cp $(OUTPUT_IMAGE)/$(uSERVICE_UID)_VendorImage.bin $(OUTPUT_MSSTOREPACK_PATH)/
 	@cp -r $(OUTPUT_USERLIB_PATH)/ $(OUTPUT_MSSTOREPACK_PATH)/
 	@cp $(MICROSERVICE_ATTRIBUTES_PATH) $(OUTPUT_MSSTOREPACK_PATH)/
 	@cp $(TESTAPP_ATTRIBUTES_PATH) $(OUTPUT_MSSTOREPACK_PATH)/
 	@cd $(OUTPUT_PATH) && zip -rq MSStore_$(uSERVICE_UID)_$(uSERVICE_VERSION_STR).zip $(OUTPUT_MSSTOREPACK_FOLDER)
 	@echo -e "\n$(PRINT_OK)Microservice Store Package Generation Completed...$(PRINT_RESET)"
-	@cp $(OUTPUT_IMAGE)/$(uSERVICE_UID)_TestApp.bin $(OUTPUT_TESTAPPPACK_PATH)/
+	@cp $(OUTPUT_IMAGE)/$(uSERVICE_UID)_VendorImage.bin $(OUTPUT_TESTAPPPACK_PATH)/
 	@cp $(TESTAPP_ATTRIBUTES_PATH) $(OUTPUT_TESTAPPPACK_PATH)/
 	@cd $(OUTPUT_PATH) && zip -rq TestApp_$(uSERVICE_UID)_$(uSERVICE_VERSION_STR).zip $(OUTPUT_TESTAPPPACK_FOLDER)
 	@echo -e "\n$(PRINT_OK)Test App Package Generation Completed...$(PRINT_RESET)"
 
+TESTAPP_ASM_FILES := \
+	$(uSERVICE_PACKAGE_PATH)/Toolchain/$(TOOLCHAIN)/vectors.s
 TESTAPP_SOURCE_FILES := \
-	$(uSERVICE_PACKAGE_PATH)/Toolchain/$(TOOLCHAIN)/vectors.s \
 	Environment/Simulator/Windows/UserAppSimulator/UserAppSimulator/main.c
 
-testapp: output_msstorepackage all $(uSERVICE_UID)_TestApp.elf
-$(uSERVICE_UID)_TestApp.elf: output
+testapp: output_msstorepackage all $(uSERVICE_UID)_VendorImage.elf
+$(uSERVICE_UID)_VendorImage.elf: output
 	@echo -e "\nBuilding" $(uSERVICE_NAME) " Test Application..."
 ### Build The Test App
-	@$(CC) $(CFLAGS) $(TESTAPP_SOURCE_FILES) $(INCLUDE_DIRS) $(LD_FLAGS) -T $(uSERVICE_GCC_LD_PATH) -L"$(OUTPUT_USERLIB_PATH)" -l$(USERLIB_LINKER_NAME) -L"$(uSERVICE_PACKAGE_PATH)" -lMSRuntime_GCC  -Wl,--no-whole-archive -Xlinker -Map=$(OUTPUT_PATH)/$@.map -o $(OUTPUT_PATH)/$@
+	@$(CC) $(CFLAGS) $(TESTAPP_SOURCE_FILES) $(TESTAPP_ASM_FILES) $(INCLUDE_DIRS) $(LD_FLAGS) -T $(uSERVICE_GCC_LD_PATH) -L"$(OUTPUT_USERLIB_PATH)" -l$(USERLIB_LINKER_NAME) -L"$(uSERVICE_PACKAGE_PATH)" -lMSRuntime_GCC  -Wl,--no-whole-archive -Xlinker -Map=$(OUTPUT_PATH)/$@.map -o $(OUTPUT_PATH)/$@
 	@echo -e "---------------------------------------------"
 	@$(SZ) $(OUTPUT_PATH)/$@
 	@$(OD) -D $(OUTPUT_PATH)/$@ > $(OUTPUT_IMAGE_DETAILS)/$(patsubst %.elf,%.objdump,$@)
@@ -209,6 +227,43 @@ $(uSERVICE_UID)_TestApp.elf: output
 
 unittest:
 	@make -f Environment/Test/UnitTests/execute_unittest.mk $(uSERVICE_NAME) AIGENERATED=$(AIGENERATED) $(SILENCE)
+
+simulator: output userlib simulator_ms simulator_testapp simulator_run
+
+simulator_ms: output
+	@mkdir -p $(SIM_LOG_PATH)
+	@$(CC) $(CFLAGS) $(SIM_CFLAGS) -DSIM_EXEC_INDEX=0 -DSIM_CPUCORE_NAME=\"x86\" \
+		$(SOURCE_FILES) $(SIM_SOURCE_FILES) $(INCLUDE_DIRS) $(LD_FLAGS) $(SIM_LD_FLAGS) \
+		-o $(OUTPUT_PATH)/$(uSERVICE_UID)_sim
+
+simulator_testapp: output userlib
+	@$(CC) $(CFLAGS) $(SIM_CFLAGS) -DSIM_EXEC_INDEX=1 -DSIM_CPUCORE_NAME=\"x86\" \
+		$(TESTAPP_SIM_SOURCE_FILES) $(INCLUDE_DIRS) $(LD_FLAGS) $(SIM_LD_FLAGS) \
+		-L$(OUTPUT_USERLIB_PATH) -l$(USERLIB_LINKER_NAME) \
+		-o $(OUTPUT_PATH)/$(uSERVICE_UID)_TestApp_sim
+
+simulator_run:
+	@echo -e "\nRunning simulator (timeout $(SIM_TIMEOUT)s)...\n"
+	@echo -e "========================================\n"
+	@( \
+		$(OUTPUT_PATH)/$(uSERVICE_UID)_sim & MS_PID=$$!; \
+		$(OUTPUT_PATH)/$(uSERVICE_UID)_TestApp_sim & TA_PID=$$!; \
+		( sleep $(SIM_TIMEOUT); \
+		  kill -0 $$MS_PID 2>/dev/null && kill -TERM $$MS_PID; \
+		  kill -0 $$TA_PID 2>/dev/null && kill -TERM $$TA_PID \
+		) & WATCHDOG=$$!; \
+		\
+		wait $$TA_PID 2>/dev/null; \
+		\
+		kill -0 $$MS_PID 2>/dev/null && kill -TERM $$MS_PID; \
+		sleep 0.2; \
+		kill -0 $$MS_PID 2>/dev/null && kill -KILL $$MS_PID; \
+		wait $$MS_PID 2>/dev/null; \
+		\
+		kill $$WATCHDOG 2>/dev/null; wait $$WATCHDOG 2>/dev/null; \
+		echo "========================================"; \
+		echo "Simulator run complete."; \
+	)
 
 init_repo:
 	@mkdir -p $(EXTERNAL_LIBS_DIR)

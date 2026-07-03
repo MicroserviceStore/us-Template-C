@@ -1,5 +1,5 @@
 /*
- * This header is an interface between the Native Code and Simulation in The Windows Form Environment
+ * This header is an interface between the Native Embedded Code and Managed Code/Simulation (e.g. The Windows Form Environment)
  */
 #ifndef __SIMULATION_H
 #define __SIMULATION_H
@@ -20,7 +20,7 @@ typedef struct
     uint8_t simExecIndex;
 } Sys_SimulationDetails;
 
-/* LOG Callback to pass the Logs from Native Code to the Windows Form Log */
+/* LOG Callback to pass the Logs from Native Code to Simulation (e.g. the Windows Form) Log */
 typedef void(*LOGCB)(uint8_t*);
 void SIM_RegisterLOGCallback(LOGCB logCB);
 

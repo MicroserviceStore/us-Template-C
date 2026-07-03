@@ -552,6 +552,17 @@ Finished checking --- no warnings
 
 ```
 
+## 5. Known Limitations
+### 5.1. Position-Independent (PIE) Code Limitations
+    - [NOT SUPPORTED] : "static const structs holding function pointers"
+        - Do not use in the implementations
+        - If a third-party library has.
+            ```
+            i. Modify the library.
+            ii. Create a GIT batch file and submit under `Libs` directory.
+            iii. Mention in the README.MD, and guide developers to apply the patch.
+            ```
+
 ## A. APPENDIX
 
 ### A.1. Build Systems and Toolchain Setups
